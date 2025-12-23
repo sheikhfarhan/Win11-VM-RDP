@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# -----------------------------------------------------------------------------
+# AUTOMATED WINDOWS 11 LAUNCHER
+# -----------------------------------------------------------------------------
+# 1. Checks if VM is off.
+# 2. Boots it using System Daemon.
+# 3. Waits for RDP port 3389 to open.
+# 4. Launches xfreerdp client.
+# -----------------------------------------------------------------------------
+
+# CONFIGURATION - Change accordingly for new machine
+VM_NAME="Win11"
+VM_IP="192.168.x.x"
+RDP_PORT=3389
+RDP_CLIENT="/home/$USER/.local/bin/win11"
+
+# Force connection to System Daemon (Bypasses need for .bashrc variables)
+VIRSH="virsh -c qemu:///system"
+
+# 1. CHECK STATUS & BOOT
+STATE=$($VIRSH domstate $VM_NAME 2>/dev/null)
+echo "🔍 Status: $VM_NAME is $STATE"
+
+if [ "$STATE" != "running" ]; then
+    echo "⚡ Booting $VM_NAME..."
+    $VIRSH start $VM_NAME
+    
+    # 2. WAIT FOR RDP SERVICE
+    echo "⏳ Waiting for RDP connection..."
+    TIMEOUT=0
+    # Loop until Netcat (nc) successfully connects to port 3389
+    while ! nc -z $VM_IP $RDP_PORT; do
+        sleep 1
+        TIMEOUT=$((TIMEOUT+1))
+        if [ $TIMEOUT -ge 90 ]; then
+            echo "❌ Error: Windows boot timed out (>90s)."
+            exit 1
+        fi
+        echo -n "."
+    done
+    echo ""
+    echo "✅ Windows is ready!"
+else
+    echo "✅ VM is already online."
+fi
+
+# 3. LAUNCH CLIENT
+echo "🚀 Starting Session..."
+$RDP_CLIENT

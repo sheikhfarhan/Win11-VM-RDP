@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# -----------------------------------------------------------------------------
+# WINDOWS 11 HOMELAB CONNECTION SCRIPT
+# -----------------------------------------------------------------------------
+# Log File: /tmp/freerdp-win11.log
+# -----------------------------------------------------------------------------
+
+#Uncomment below line if need be
+#LOG_FILE="/tmp/freerdp-win11.log"
+
+echo "Starting Remote Desktop..."
+#echo "Logging debug output to: $LOG_FILE"
+
+# We use 'exec' to redirect all output from this point forward to the log file
+# > overwrites the file each time. Use >> if you want to append/keep history.
+#Uncomment below line if need be
+#exec > >(tee "$LOG_FILE") 2>&1
+
+xfreerdp3 \
+  /v:192.168.xx.xx \
+  /u:USERNAME \
+  /p:PASSWORD \
+  /f \
+  /network:lan \
+  /size:2560x1440 \
+  /scale:100 \
+  /scale-desktop:120 \
+  /gfx:avc444 \
+  +clipboard \
+  /audio-mode:1 \
+  /cert:ignore \
+  /drive:CachyOS,/home/$USER/Shared \
+  /smart-sizing
+#  /log-level:DEBUG
